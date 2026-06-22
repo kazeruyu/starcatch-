@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Star Catch – Jeu Gratuit en Ligne</title>
+  <meta name="description" content="Joue gratuitement à Star Catch ! Attrape les étoiles, évite les bombes. Jeu gratuit en ligne, sans téléchargement.">
+  <meta name="keywords" content="jeu gratuit, jeu en ligne, star catch, jeu navigateur, arcade">
+  <meta property="og:title" content="Star Catch – Jeu Gratuit en Ligne">
+  <meta property="og:description" content="Attrape les étoiles, évite les bombes ! Jeu arcade gratuit jouable directement dans ton navigateur.">
+  <meta property="og:type" content="website">
+
+  <!-- ============================================================
+       GOOGLE ADSENSE — REMPLACE "ca-pub-XXXXXXXXXX" PAR TON ID
+       Obtiens ton ID sur : https://adsense.google.com
+  ============================================================ -->
+  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXX" crossorigin="anonymous"></script> -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d1a;
+      --surface: #13132b;
+      --surface2: #1a1a38;
+      --accent: #a78bfa;
+      --gold: #fbbf24;
+      --red: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --border: rgba(167,139,250,0.15);
+      --ad-bg: #0a0a1f;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      margin-left: 20px;
+      transition: color .2s;
+    }
+    nav a:hover { color: var(--text); }
+    nav a.active { color: var(--text); }
+
+    /* ── LAYOUT ── */
+    .page {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      flex: 1;
+    }
+    @media(max-width:760px){
+      .page { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    /* ── LEADERBOARD AD (top banner) ── */
+    .ad-leaderboard {
+      background: var(--ad-bg);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      max-width: 728px;
+      height: 90px;
+      margin: 16px auto 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+      gap: 8px;
+    }
+
+    /* ── GAME AREA ── */
+    .game-section { display: flex; flex-direction: column; gap: 16px; }
+
+    .game-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .game-header {
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .game-title { font-size: 16px; font-weight: 600; color: var(--gold); }
+    .badges { display: flex; gap: 6px; }
+    .badge {
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .badge-green { background: #14532d; color: #4ade80; }
+    .badge-blue  { background: #1e3a5f; color: #60a5fa; }
+
+    .hud {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .hud-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      border-right: 1px solid var(--border);
+    }
+    .hud-item:last-child { border-right: none; }
+    .hud-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+    .hud-val { font-size: 20px; font-weight: 700; color: var(--accent); }
+    .hud-val.gold { color: var(--gold); }
+    .hud-val.red  { color: var(--red); }
+
+    canvas {
+      display: block;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      cursor: none;
+      touch-action: none;
+    }
+
+    /* ── IN-GAME AD (rectangle) ── */
+    .ad-rect {
+      background: var(--ad-bg);
+      border-top: 1px dashed var(--border);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+      gap: 8px;
+    }
+
+    /* ── INFO BELOW GAME ── */
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .info-card h2 { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: var(--accent); }
+    .info-card p  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 8px; }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .ctrl {
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ctrl-icon { font-size: 18px; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+    .ad-sidebar {
+      background: var(--ad-bg);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      width: 100%;
+      height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--muted);
+      gap: 6px;
+    }
+    .ad-tag {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      opacity: .6;
+      margin-bottom: 4px;
+    }
+
+    .widget-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .widget-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+    .score-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .score-row:last-child { border-bottom: none; }
+    .rank { color: var(--muted); font-size: 11px; width: 20px; }
+    .player-name { flex: 1; padding: 0 10px; }
+    .player-score { color: var(--gold); font-weight: 600; }
+
+    .tip-card {
+      background: var(--surface2);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      border-left: 3px solid var(--accent);
+    }
+    .tip-card strong { color: var(--accent); }
+
+    /* ── OVERLAY ── */
+    .game-wrap { position: relative; }
+    #overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10,10,26,0.92);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 0 0 16px 16px;
+    }
+    .ov-box {
+      text-align: center;
+      padding: 32px 40px;
+    }
+    .ov-box h2 { font-size: 28px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+    .ov-box p  { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+    .big-score { font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .big-label { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 36px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      display: block;
+      width: 100%;
+    }
+    .btn:hover  { opacity: .9; }
+    .btn:active { transform: scale(.97); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    footer a { color: var(--muted); text-decoration: none; margin: 0 8px; }
+    footer a:hover { color: var(--text); }
+
+    /* ── INTERSTITIEL ── */
+    #inter-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.9);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    #inter-modal.open { display: flex; }
+    .inter-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      max-width: 380px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .inter-img {
+      height: 180px;
+      background: linear-gradient(135deg,#1e3a5f,#312e81);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+    }
+    .inter-body { padding: 24px; }
+    .inter-ad-tag { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .inter-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+    .inter-sub   { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+    .inter-cta   { background: var(--accent); color: #fff; border: none; border-radius: 12px; padding: 13px; font-size: 14px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+    .inter-skip  { display: block; text-align: center; font-size: 12px; color: var(--muted); cursor: pointer; background: none; border: none; width: 100%; padding: 4px; }
+    .inter-skip:disabled { opacity: .4; cursor: default; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="logo">⭐ Star<span>Catch</span></div>
+  <nav>
+    <a href="#">Accueil</a>
+    <a href="#">Classement</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<!-- ── TOP BANNER AD ── -->
+<div class="ad-leaderboard">
+  <!-- ADSENSE LEADERBOARD 728×90
+  <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px"
+       data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  -->
+  <span>📢</span> Espace publicitaire — Google AdSense 728×90 (Leaderboard)
+</div>
+
+<div class="page">
+
+  <!-- ── MAIN ── -->
+  <div class="game-section">
+
+    <div class="game-card">
+      <div class="game-header">
+        <span class="game-title">⭐ Star Catch — Arcade</span>
+        <div class="badges">
+          <span class="badge badge-green">Gratuit</span>
+          <span class="badge badge-blue">Sans téléchargement</span>
+        </div>
+      </div>
+
+      <div class="hud">
+        <div class="hud-item">
+          <div class="hud-label">Score</div>
+          <div class="hud-val gold" id="h-score">0</div>
+        </div>
+        <div class="hud-item">
+          <div class="hud-label">Niveau</div>
+          <div class="hud-val" id="h-level">1</div>
+        </div>
+        <div class="hud-item">
+          <div class="hud-label">Record</div>
+          <div class="hud-val gold" id="h-best">0</div>
+        </div>
+        <div class="hud-item">
+          <div class="hud-label">Vies</div>
+          <div class="hud-val red" id="h-lives">♥♥♥</div>
+        </div>
+      </div>
+
+      <div class="game-wrap">
+        <canvas id="canvas" width="600" height="400"></canvas>
+        <div id="overlay">
+          <div class="ov-box" id="ov-content">
+            <h2>⭐ Star Catch</h2>
+            <p>Attrape les étoiles ✦ Évite les bombes 💣<br>Déplace ta souris ou glisse ton doigt</p>
+            <button class="btn" id="start-btn">▶ Jouer maintenant</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- IN-GAME BANNER AD 728×60 -->
+      <div class="ad-rect">
+        <!-- ADSENSE BANNER 728×60
+        <ins class="adsbygoogle" style="display:inline-block;width:728px;height:60px"
+             data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        -->
+        <span>📢</span> Espace publicitaire — Google AdSense 728×60 (Banner)
+      </div>
+    </div>
+
+    <!-- INFO CARD -->
+    <div class="info-card">
+      <h2>Comment jouer ?</h2>
+      <p>Déplace le paddle pour attraper un maximum d'étoiles avant qu'elles tombent. Évite les bombes ! Le jeu accélère à chaque niveau.</p>
+      <div class="controls-grid">
+        <div class="ctrl"><span class="ctrl-icon">🖱️</span> Déplace ta souris</div>
+        <div class="ctrl"><span class="ctrl-icon">👆</span> Glisse sur mobile</div>
+        <div class="ctrl"><span class="ctrl-icon">⭐</span> +10 pts par étoile</div>
+        <div class="ctrl"><span class="ctrl-icon">💣</span> −1 vie par bombe</div>
+      </div>
+    </div>
+
+  </div><!-- /game-section -->
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- SIDEBAR AD 300×250 -->
+    <div class="ad-sidebar">
+      <!-- ADSENSE RECTANGLE 300×250
+      <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <div class="ad-tag">Publicité</div>
+      <span style="font-size:32px">📢</span>
+      <span>AdSense 300×250</span>
+      <span style="font-size:11px">Rectangle (meilleur CPM)</span>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="widget-card">
+      <h3>🏆 Classement local</h3>
+      <div id="leaderboard">
+        <div class="score-row"><span class="rank">1</span><span class="player-name">StarMaster</span><span class="player-score">2 450</span></div>
+        <div class="score-row"><span class="rank">2</span><span class="player-name">CosmicAce</span><span class="player-score">1 890</span></div>
+        <div class="score-row"><span class="rank">3</span><span class="player-name">NebulaPro</span><span class="player-score">1 340</span></div>
+        <div class="score-row"><span class="rank">4</span><span class="player-name">GalaxyKid</span><span class="player-score">980</span></div>
+        <div class="score-row" id="my-rank" style="display:none">
+          <span class="rank" style="color:var(--gold)">★</span>
+          <span class="player-name" style="color:var(--gold)">Toi</span>
+          <span class="player-score" id="my-score-lb">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIP -->
+    <div class="tip-card">
+      <strong>💡 Astuce</strong><br>
+      Les étoiles rouges valent 3× plus de points. Concentre-toi sur elles dès le niveau 3 !
+    </div>
+
+    <!-- SIDEBAR AD 300×250 (2nd) -->
+    <div class="ad-sidebar">
+      <!-- ADSENSE RECTANGLE 300×250 (2ème slot)
+      <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px"
+           data-ad-client="ca-pub-XXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <div class="ad-tag">Publicité</div>
+      <span style="font-size:32px">📢</span>
+      <span>AdSense 300×250</span>
+      <span style="font-size:11px">2ème slot sidebar</span>
+    </div>
+
+  </aside>
+</div><!-- /page -->
+
+<!-- ── FOOTER ── -->
+<footer>
+  <p>© 2025 StarCatch · Jeu gratuit en ligne</p>
+  <p style="margin-top:6px">
+    <a href="privacy.html">Politique de confidentialité</a>
+    <a href="mentions-legales.html">Mentions légales</a>
+    <a href="contact.html">Contact</a>
+  </p>
+</footer>
+
+<!-- ── INTERSTITIEL ── -->
+<div id="inter-modal">
+  <div class="inter-box">
+    <div class="inter-img" id="inter-emoji">🚀</div>
+    <div class="inter-body">
+      <div class="inter-ad-tag">Publicité</div>
+      <div class="inter-title" id="inter-title">FunApp</div>
+      <div class="inter-sub" id="inter-sub">Découvrez des centaines de jeux gratuits.</div>
+      <!-- ADSENSE INTERSTITIEL
+      <ins class="adsbygoogle" style="display:block"
+           data-ad-format="autorelaxed"
+           data-ad-client="ca-pub-XXXXXXXXXX"
+           data-ad-slot="XXXXXXXXXX"></ins>
+      -->
+      <button class="inter-cta" id="inter-cta">En savoir plus</button>
+      <button class="inter-skip" id="inter-skip" disabled>Passer dans 5s…</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── GAME SCRIPT ── -->
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let gameRunning = false, score = 0, lives = 3, level = 1, frame = 0;
+let best = parseInt(localStorage.getItem('starcatch_best') || '0');
+let playerX = W/2, targetX = W/2;
+let items = [], particles = [], spawnT = 0, interT = 0;
+
+const PW = 70, PH = 14;
+
+const interAds = [
+  {emoji:'🚀', title:'JeuxGratuits.fr', sub:'500+ jeux flash gratuits, sans inscription.'},
+  {emoji:'💸', title:'CashGame', sub:'Jouez et gagnez de vrais cadeaux chaque jour.'},
+  {emoji:'🎮', title:'GamePass Mobile', sub:'Accès illimité à 200 jeux premium.'},
+];
+
+document.getElementById('h-best').textContent = best;
+
+function updateHUD(){
+  document.getElementById('h-score').textContent = score;
+  document.getElementById('h-level').textContent = level;
+  document.getElementById('h-lives').textContent = '♥'.repeat(lives) + '♡'.repeat(3-lives);
+  document.getElementById('h-best').textContent = best;
+}
+
+function spawnItem(){
+  const isBomb = Math.random() < 0.15 + level * 0.025;
+  const isRed  = !isBomb && Math.random() < 0.12;
+  items.push({
+    x: 30 + Math.random() * (W - 60),
+    y: -20, r: 13,
+    type: isBomb ? 'bomb' : 'star',
+    color: isRed ? 'red' : 'gold',
+    speed: 1.6 + level * 0.45 + Math.random() * 1.2,
+    rot: 0, rotV: (Math.random() - 0.5) * 0.1
+  });
+}
+
+function addParticles(x, y, color, n=10){
+  for(let i=0;i<n;i++){
+    const a = Math.random()*Math.PI*2, s = 2 + Math.random()*4;
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color});
+  }
+}
+
+function drawPlayer(px){
+  const grd = ctx.createLinearGradient(px-PW/2, H-36, px+PW/2, H-22);
+  grd.addColorStop(0,'#7c3aed'); grd.addColorStop(1,'#a78bfa');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.roundRect(px-PW/2, H-36, PW, PH, 7);
+  ctx.fill();
+  ctx.fillStyle='#c4b5fd';
+  ctx.beginPath();
+  ctx.roundRect(px-7, H-36-8, 14, 10, 4);
+  ctx.fill();
+}
+
+function drawStar(x,y,r,rot,color){
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);
+  ctx.shadowBlur = 16;
+  ctx.shadowColor = color==='red'?'#ef4444':'#fbbf24';
+  ctx.fillStyle   = color==='red'?'#ef4444':'#fbbf24';
+  ctx.beginPath();
+  for(let i=0;i<5;i++){
+    const a = Math.PI*2/5*i - Math.PI/2;
+    const ai = a + Math.PI/5;
+    if(i===0) ctx.moveTo(Math.cos(a)*r, Math.sin(a)*r);
+    else ctx.lineTo(Math.cos(a)*r, Math.sin(a)*r);
+    ctx.lineTo(Math.cos(ai)*(r*.42), Math.sin(ai)*(r*.42));
+  }
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function drawBomb(x,y,r){
+  ctx.save();ctx.translate(x,y);
+  ctx.shadowBlur=12;ctx.shadowColor='#ef4444';
+  ctx.fillStyle='#1e293b';ctx.strokeStyle='#ef4444';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.font=`${r+4}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('💣',0,1);
+  ctx.restore();
+}
+
+function gameLoop(){
+  if(!gameRunning) return;
+  frame++;
+
+  // BG
+  ctx.fillStyle='#0d0d1a';ctx.fillRect(0,0,W,H);
+  // Stars BG
+  for(let i=0;i<20;i++){
+    const sx=(frame*.05*((i%3)+1)+i*47)%W;
+    const sy=(frame*.04*((i%2)+1)+i*53)%H;
+    ctx.fillStyle=`rgba(167,139,250,${.1+.15*(i%3)})`;
+    ctx.beginPath();ctx.arc(sx,sy,.8,0,Math.PI*2);ctx.fill();
+  }
+
+  playerX += (targetX - playerX) * 0.14;
+  drawPlayer(playerX);
+
+  spawnT++;
+  if(spawnT >= Math.max(40-level*3,18)){ spawnItem(); spawnT=0; }
+
+  const py = H-36+PH/2;
+  for(let i=items.length-1;i>=0;i--){
+    const it=items[i];
+    it.y+=it.speed; it.rot+=it.rotV;
+    if(it.type==='star') drawStar(it.x,it.y,it.r,it.rot,it.color);
+    else drawBomb(it.x,it.y,it.r);
+
+    const caught = Math.abs(it.x-playerX)<PW/2+it.r*.5 && Math.abs(it.y-py)<PH/2+it.r*.5;
+    if(caught){
+      if(it.type==='star'){
+        const pts = (it.color==='red'?30:10)*level;
+        score += pts;
+        addParticles(it.x,it.y,it.color==='red'?'#ef4444':'#fbbf24');
+        if(score >= level*100){ level++; }
+      } else {
+        lives--; addParticles(it.x,it.y,'#ef4444',14);
+        if(lives<=0){ endGame(); return; }
+      }
+      items.splice(i,1); updateHUD(); continue;
+    }
+    if(it.y>H+20){
+      if(it.type==='star'){ lives--; updateHUD(); if(lives<=0){endGame();return;} }
+      items.splice(i,1);
+    }
+  }
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx;p.y+=p.vy;p.vx*=.88;p.vy*=.88;p.life-=.05;
+    if(p.life<=0){particles.splice(i,1);continue;}
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,3*p.life,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  // Interstitiel toutes les ~12 secondes de jeu
+  interT++;
+  if(interT >= 720){
+    interT=0;
+    gameRunning=false;
+    showInter(()=>{ gameRunning=true; requestAnimationFrame(gameLoop); });
+    return;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+function endGame(){
+  gameRunning=false;
+  if(score>best){ best=score; localStorage.setItem('starcatch_best',best); }
+  showInter(()=>{
+    document.getElementById('my-rank').style.display='flex';
+    document.getElementById('my-score-lb').textContent=score;
+    showOverlay('gameover');
+  });
+}
+
+function showOverlay(type){
+  const ov=document.getElementById('overlay');
+  const content=document.getElementById('ov-content');
+  ov.style.display='flex';
+  if(type==='gameover'){
+    content.innerHTML=`
+      <h2>Game Over</h2>
+      <div class="big-score">${score}</div>
+      <div class="big-label">points — Niveau ${level} — Record : ${best}</div>
+      <button class="btn" id="start-btn">▶ Rejouer</button>`;
+  } else {
+    content.innerHTML=`
+      <h2>⭐ Star Catch</h2>
+      <p>Attrape les étoiles ✦ Évite les bombes 💣<br>Déplace ta souris ou glisse ton doigt</p>
+      <button class="btn" id="start-btn">▶ Jouer maintenant</button>`;
+  }
+  document.getElementById('start-btn').onclick=startGame;
+}
+
+function showInter(onClose){
+  const ad=interAds[Math.floor(Math.random()*interAds.length)];
+  document.getElementById('inter-emoji').textContent=ad.emoji;
+  document.getElementById('inter-title').textContent=ad.title;
+  document.getElementById('inter-sub').textContent=ad.sub;
+  const modal=document.getElementById('inter-modal');
+  const skip=document.getElementById('inter-skip');
+  modal.classList.add('open');
+  skip.disabled=true; let t=5;
+  skip.textContent=`Passer dans ${t}s…`;
+  const iv=setInterval(()=>{
+    t--; skip.textContent=t>0?`Passer dans ${t}s…`:'✕ Passer';
+    if(t<=0){clearInterval(iv);skip.disabled=false;}
+  },1000);
+  const close=()=>{ modal.classList.remove('open'); if(onClose)onClose(); };
+  skip.onclick=()=>{ if(!skip.disabled) close(); };
+  document.getElementById('inter-cta').onclick=close;
+}
+
+function startGame(){
+  score=0;lives=3;level=1;frame=0;items=[];particles=[];spawnT=0;interT=0;
+  playerX=W/2;targetX=W/2;
+  document.getElementById('overlay').style.display='none';
+  updateHUD();
+  gameRunning=true;
+  requestAnimationFrame(gameLoop);
+}
+
+// Controls
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect();
+  targetX=(e.clientX-r.left)*(W/r.width);
+});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  targetX=(e.touches[0].clientX-r.left)*(W/r.width);
+},{passive:false});
+canvas.addEventListener('touchstart',e=>{
+  const r=canvas.getBoundingClientRect();
+  targetX=(e.touches[0].clientX-r.left)*(W/r.width);
+},{passive:true});
+
+document.getElementById('start-btn').onclick=startGame;
+updateHUD();
+</script>
+</body>
+</html>
